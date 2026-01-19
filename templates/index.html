@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        .card h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 500;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+            font-family: inherit;
+        }
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+        }
+        button {
+            padding: 12px 20px;
+            background-color: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #764ba2;
+        }
+        button.secondary {
+            background-color: #e74c3c;
+            margin-left: 10px;
+        }
+        button.secondary:hover {
+            background-color: #c0392b;
+        }
+        button.success {
+            background-color: #27ae60;
+        }
+        button.success:hover {
+            background-color: #229954;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .data-list {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .data-item {
+            background: #f5f5f5;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid #667eea;
+        }
+        .data-item-info {
+            flex: 1;
+        }
+        .data-item-info p {
+            margin: 3px 0;
+            color: #555;
+            font-size: 0.9em;
+        }
+        .data-item-info strong {
+            color: #333;
+        }
+        .delete-btn {
+            background-color: #e74c3c;
+            padding: 8px 12px;
+            font-size: 0.9em;
+        }
+        .delete-btn:hover {
+            background-color: #c0392b;
+        }
+        .message {
+            padding: 12px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+        .message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+        .message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+        .dashboard-section {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            margin-top: 20px;
+        }
+        .dashboard-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .dashboard-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+        .empty-state {
+            text-align: center;
+            color: #999;
+            padding: 40px 20px;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .stat-box {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .stat-box h3 {
+            color: #667eea;
+            font-size: 1.8em;
+            margin-bottom: 5px;
+        }
+        .stat-box p {
+            color: #666;
+            font-size: 0.9em;
+        }
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .header h1 {
+                font-size: 1.8em;
+            }
+            .tabs {
+                flex-wrap: wrap;
+            }
+        }
+        .tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 20px;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 15px 20px;
+            background: #f0f0f0;
+            border: none;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s;
+        }
+        .tab-btn.active {
+            background: #667eea;
+            color: white;
+        }
+        .tab-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌤️ Weather Dashboard</h1>
+            <p>Fetch from API or manually enter weather data</p>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('manual')">📝 Manual Entry</button>
+            <button class="tab-btn" onclick="switchTab('api')">🔌 API Data</button>
+        </div>
+
+        <!-- Manual Entry Tab -->
+        <div id="manual" class="tab-content active">
+            <div class="main-content">
+                <!-- Entry Form -->
+                <div class="card">
+                    <h2>Add Weather Entry</h2>
+                    <div class="message" id="formMessage"></div>
+                    <form id="weatherForm">
+                        <div class="form-group">
+                            <label for="datetime">Date & Time</label>
+                            <input type="datetime-local" id="datetime" name="datetime" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="temperature">Temperature (°C)</label>
+                            <input type="number" id="temperature" name="temperature" step="0.1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="humidity">Humidity (%)</label>
+                            <input type="number" id="humidity" name="humidity" min="0" max="100" step="0.1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="windspeed">Wind Speed (m/s)</label>
+                            <input type="number" id="windspeed" name="windspeed" step="0.1" required>
+                        </div>
+                    <div class="form-group">
+                        <label for="description">Description</label>
+                        <textarea id="description" name="description" rows="3" placeholder="e.g., Partly cloudy"></textarea>
+                    </div>
+                    <button type="submit" class="success">Add Entry</button>
+                </form>
+            </div>
+
+            <!-- Data List -->
+            <div class="card">
+                <h2>Weather Entries</h2>
+                <div id="entriesMessage" class="message"></div>
+                <div class="stats" id="stats"></div>
+                <div class="data-list" id="dataList">
+                    <div class="empty-state">No entries yet. Add one to get started!</div>
+                </div>
+                <div class="button-group">
+                    <button class="success" onclick="generateDashboard()">Generate Dashboard</button>
+                    <button class="secondary" onclick="clearAllData()">Clear All</button>
+                </div>
+            </div>
+        </div>
+        </div>
+
+        <!-- API Data Tab -->
+        <div id="api" class="tab-content">
+            <div class="main-content">
+                <!-- API Form -->
+                <div class="card">
+                    <h2>Fetch from OpenWeatherMap API</h2>
+                    <div class="message" id="apiMessage"></div>
+                    <form id="apiForm">
+                        <div class="form-group">
+                            <label for="apiKey">API Key</label>
+                            <input type="password" id="apiKey" name="apiKey" placeholder="Your OpenWeatherMap API key">
+                            <small style="color: #999; margin-top: 5px; display: block;">Get one from <a href="https://openweathermap.org/api" target="_blank">https://openweathermap.org/api</a></small>
+                        </div>
+                        <div class="form-group">
+                            <label for="apiCity">City Name</label>
+                            <input type="text" id="apiCity" name="apiCity" placeholder="e.g., Bengaluru, London,uk" value="Bengaluru">
+                        </div>
+                        <div class="form-group">
+                            <label for="apiUnits">Temperature Units</label>
+                            <select id="apiUnits" name="apiUnits" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 1em;">
+                                <option value="metric">Celsius (metric)</option>
+                                <option value="imperial">Fahrenheit (imperial)</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="success">Fetch Data from API</button>
+                    </form>
+                </div>
+
+                <!-- Data List -->
+                <div class="card">
+                    <h2>Weather Data</h2>
+                    <div id="apiEntriesMessage" class="message"></div>
+                    <div class="stats" id="apiStats"></div>
+                    <div class="data-list" id="apiDataList">
+                        <div class="empty-state">No data loaded. Fetch from API to get started!</div>
+                    </div>
+                    <div class="button-group">
+                        <button class="success" onclick="generateDashboard()">Generate Dashboard</button>
+                        <button class="secondary" onclick="clearAllData()">Clear All</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Visualization -->
+        <div class="dashboard-section">
+            <h2>Dashboard Visualization</h2>
+            <div id="cityDisplay" style="font-size: 1.2em; color: #667eea; font-weight: 600; margin-bottom: 15px; display: none;"></div>
+            <div id="dashboardMessage" class="message"></div>
+            <div id="dashboardContainer" class="empty-state">
+                Click "Generate Dashboard" to visualize your data
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5000';
+        let currentCity = 'Weather Data';  // Track current city
+
+        // Set default datetime to now
+        document.addEventListener('DOMContentLoaded', () => {
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            document.getElementById('datetime').value = now.toISOString().slice(0, 16);
+            loadEntries();
+        });
+
+        // Tab switching
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Form submission
+        document.getElementById('weatherForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = {
+                datetime: document.getElementById('datetime').value,
+                temperature: document.getElementById('temperature').value,
+                humidity: document.getElementById('humidity').value,
+                windspeed: document.getElementById('windspeed').value,
+                description: document.getElementById('description').value
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/add_entry`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    showMessage('formMessage', 'Entry added successfully!', 'success');
+                    document.getElementById('weatherForm').reset();
+                    // Reset datetime to now
+                    const now = new Date();
+                    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+                    document.getElementById('datetime').value = now.toISOString().slice(0, 16);
+                    loadEntries();
+                } else {
+                    showMessage('formMessage', result.message, 'error');
+                }
+            } catch (error) {
+                showMessage('formMessage', 'Error: ' + error.message, 'error');
+            }
+        });
+
+        async function loadEntries() {
+            try {
+                const response = await fetch(`${API_BASE}/get_entries`);
+                const entries = await response.json();
+                
+                if (entries.length === 0) {
+                    document.getElementById('dataList').innerHTML = '<div class="empty-state">No entries yet. Add one to get started!</div>';
+                    document.getElementById('stats').innerHTML = '';
+                    return;
+                }
+
+                // Calculate stats
+                const temps = entries.map(e => e.Temperature);
+                const humidities = entries.map(e => e.Humidity);
+                const winds = entries.map(e => e.WindSpeed);
+
+                document.getElementById('stats').innerHTML = `
+                    <div class="stat-box">
+                        <h3>${(temps.reduce((a,b) => a+b) / temps.length).toFixed(1)}°C</h3>
+                        <p>Avg Temperature</p>
+                    </div>
+                    <div class="stat-box">
+                        <h3>${(humidities.reduce((a,b) => a+b) / humidities.length).toFixed(1)}%</h3>
+                        <p>Avg Humidity</p>
+                    </div>
+                    <div class="stat-box">
+                        <h3>${(winds.reduce((a,b) => a+b) / winds.length).toFixed(1)} m/s</h3>
+                        <p>Avg Wind Speed</p>
+                    </div>
+                    <div class="stat-box">
+                        <h3>${entries.length}</h3>
+                        <p>Total Entries</p>
+                    </div>
+                `;
+
+                const html = entries.map((entry, index) => `
+                    <div class="data-item">
+                        <div class="data-item-info">
+                            <p><strong>${entry.DateTime}</strong></p>
+                            <p>🌡️ ${entry.Temperature}°C | 💧 ${entry.Humidity}% | 💨 ${entry.WindSpeed} m/s</p>
+                            <p>${entry.Description}</p>
+                        </div>
+                        <button class="delete-btn" onclick="deleteEntry(${index})">Delete</button>
+                    </div>
+                `).join('');
+                
+                document.getElementById('dataList').innerHTML = html;
+            } catch (error) {
+                showMessage('entriesMessage', 'Error loading entries: ' + error.message, 'error');
+            }
+        }
+
+        async function deleteEntry(index) {
+            if (confirm('Delete this entry?')) {
+                try {
+                    const response = await fetch(`${API_BASE}/delete_entry/${index}`, { method: 'DELETE' });
+                    const result = await response.json();
+                    if (result.status === 'success') {
+                        loadEntries();
+                    } else {
+                        showMessage('entriesMessage', result.message, 'error');
+                    }
+                } catch (error) {
+                    showMessage('entriesMessage', 'Error: ' + error.message, 'error');
+                }
+            }
+        }
+
+        async function generateDashboard() {
+            try {
+                const response = await fetch(`${API_BASE}/generate_dashboard`);
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    // Display city name
+                    const cityDisplay = document.getElementById('cityDisplay');
+                    cityDisplay.textContent = `📍 ${currentCity}`;
+                    cityDisplay.style.display = 'block';
+                    
+                    document.getElementById('dashboardContainer').innerHTML = `
+                        <img src="data:image/png;base64,${result.image}" alt="Dashboard" class="dashboard-image">
+                        <p style="margin-top: 15px; color: #666;">📊 Data saved to: <strong>${result.csv_saved}</strong></p>
+                    `;
+                    showMessage('dashboardMessage', 'Dashboard generated successfully!', 'success');
+                } else {
+                    showMessage('dashboardMessage', result.message, 'error');
+                }
+            } catch (error) {
+                showMessage('dashboardMessage', 'Error: ' + error.message, 'error');
+            }
+        }
+
+        async function clearAllData() {
+            if (confirm('Delete ALL entries? This cannot be undone.')) {
+                try {
+                    const response = await fetch(`${API_BASE}/clear_data`, { method: 'POST' });
+                    const result = await response.json();
+                    if (result.status === 'success') {
+                        document.getElementById('dashboardContainer').innerHTML = '<div class="empty-state">Click "Generate Dashboard" to visualize your data</div>';
+                        loadEntries();
+                        showMessage('entriesMessage', 'All data cleared!', 'success');
+                    } else {
+                        showMessage('entriesMessage', result.message, 'error');
+                    }
+                } catch (error) {
+                    showMessage('entriesMessage', 'Error: ' + error.message, 'error');
+                }
+            }
+        }
+
+        function showMessage(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `message ${type}`;
+            setTimeout(() => {
+                element.style.display = 'none';
+            }, 5000);
+        }
+
+        // API Form submission
+        document.getElementById('apiForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const apiKey = document.getElementById('apiKey').value;
+            const city = document.getElementById('apiCity').value;
+            const units = document.getElementById('apiUnits').value;
+
+            if (!apiKey) {
+                showMessage('apiMessage', 'Please enter your API key', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/fetch_api_data`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ api_key: apiKey, city: city, units: units })
+                });
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    currentCity = city;  // Update city name
+                    showMessage('apiMessage', result.message, 'success');
+                    loadEntries();
+                } else {
+                    showMessage('apiMessage', result.message, 'error');
+                }
+            } catch (error) {
+                showMessage('apiMessage', 'Error: ' + error.message, 'error');
+            }
+        });
+    </script>
+</body>
+</html>
