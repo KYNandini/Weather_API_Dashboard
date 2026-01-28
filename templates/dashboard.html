@@ -192,6 +192,51 @@
         button.danger:hover {
             background-color: #c0392b;
         }
+        .data-nav-bar {
+            display: flex;
+            gap: 0;
+            background: white;
+            border-bottom: 2px solid #ddd;
+            margin-bottom: 0;
+        }
+        .data-nav-btn {
+            flex: 1;
+            padding: 12px 20px;
+            background: white;
+            border: none;
+            cursor: pointer;
+            font-size: 0.95em;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+        }
+        .data-nav-btn.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+            background: #f9f9f9;
+        }
+        .data-nav-btn:hover {
+            background: #f5f5f5;
+        }
+        .data-section {
+            display: none;
+        }
+        .data-section.active {
+            display: block;
+        }
+        .api-help-link {
+            display: inline-block;
+            margin-top: 8px;
+            font-size: 0.85em;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .api-help-link:hover {
+            text-decoration: underline;
+            color: #764ba2;
+        }
         .filters {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -351,6 +396,15 @@
             <div class="tabs-content-wrapper">
                 <!-- Data Tab -->
                 <div id="data" class="tab-content active">
+                    <!-- Data Navigation Bar -->
+                    <div class="data-nav-bar">
+                        <button class="data-nav-btn active" onclick="switchDataSection('manual')">✏️ Manual Entry</button>
+                        <button class="data-nav-btn" onclick="switchDataSection('api')">🌐 Fetch from API</button>
+                        <button class="data-nav-btn" onclick="switchDataSection('view')">📋 View Data</button>
+                    </div>
+
+                    <!-- Manual Entry Section -->
+                    <div id="manual" class="data-section active">
             <div class="card">
                 <h2>Add Manual Entry</h2>
                 <div class="message" id="formMessage"></div>
@@ -383,31 +437,39 @@
                     </div>
                 </div>
                 <button class="success" onclick="addEntry()">Add Entry</button>
-            </div>
+                    </div>
 
+                    <!-- Fetch from API Section -->
+                    <div id="api" class="data-section">
             <div class="card">
-                <h2>Fetch from API</h2>
+                <h2>Fetch Weather Data from API</h2>
                 <div class="message" id="apiMessage"></div>
                 <div class="form-row">
                     <div class="form-group">
                         <label for="apiKey">API Key</label>
                         <input type="password" id="apiKey" placeholder="Your OpenWeatherMap API key">
+                        <a href="https://openweathermap.org/api" target="_blank" class="api-help-link">
+                            🔗 Get your free API key here
+                        </a>
                     </div>
                     <div class="form-group">
                         <label for="apiCity">City</label>
                         <input type="text" id="apiCity" placeholder="e.g., Bengaluru" value="Bengaluru">
                     </div>
                     <div class="form-group">
-                        <label for="apiUnits">Units</label>
+                        <label for="apiUnits">Temperature Unit</label>
                         <select id="apiUnits">
-                            <option value="metric">Celsius</option>
-                            <option value="imperial">Fahrenheit</option>
+                            <option value="metric">Celsius (°C)</option>
+                            <option value="imperial">Fahrenheit (°F)</option>
                         </select>
                     </div>
                 </div>
-                <button class="success" onclick="fetchAPI()">Fetch Data</button>
+                <button class="success" onclick="fetchAPI()">📡 Fetch Data</button>
             </div>
+                    </div>
 
+                    <!-- View Data Section -->
+                    <div id="view" class="data-section">
             <div class="card">
                 <h2>Weather Data</h2>
                 <div class="message" id="dataMessage"></div>
@@ -439,7 +501,8 @@
                     </tbody>
                 </table>
             </div>
-        </div>
+                    </div>
+                </div>
 
         <!-- Alerts Tab -->
         <div id="alerts" class="tab-content">
@@ -489,6 +552,13 @@
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function switchDataSection(sectionName) {
+            document.querySelectorAll('.data-section').forEach(section => section.classList.remove('active'));
+            document.querySelectorAll('.data-nav-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(sectionName).classList.add('active');
             event.target.classList.add('active');
         }
 
