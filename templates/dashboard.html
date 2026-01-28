@@ -465,6 +465,27 @@
                     </div>
                 </div>
                 <button class="success" onclick="fetchAPI()">📡 Fetch Data</button>
+
+                <!-- Fetched Data Display -->
+                <div style="margin-top: 30px;">
+                    <h3>Fetched Weather Data</h3>
+                    <table class="data-table" id="apiDataTable">
+                        <thead>
+                            <tr>
+                                <th>Date & Time</th>
+                                <th>Temperature</th>
+                                <th>Humidity (%)</th>
+                                <th>Wind Speed (m/s)</th>
+                                <th>Description</th>
+                                <th>City</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="apiDataTableBody">
+                            <tr><td colspan="7" style="text-align: center; color: #999;">Fetch data to display</td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
                     </div>
 
@@ -618,12 +639,63 @@
                     currentCity = city;
                     showMessage('apiMessage', result.message, 'success');
                     loadEntries();
+                    displayAPIFetchedData(result.data);
                 } else {
                     showMessage('apiMessage', result.message, 'error');
                 }
             } catch (error) {
                 showMessage('apiMessage', 'Error: ' + error.message, 'error');
             }
+        }
+
+        function displayAPIFetchedData(data) {
+            const tbody = document.getElementById('apiDataTableBody');
+            
+            if (!data || (Array.isArray(data) && data.length === 0)) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #999;">No data fetched</td></tr>';
+                return;
+            }
+
+            // Handle single object or array of objects
+            const entries = Array.isArray(data) ? data : [data];
+
+            tbody.innerHTML = entries.map((entry, index) => {
+                const tempUnit = document.getElementById('apiUnits').value === 'metric' ? '°C' : '°F';
+                const dateTime = entry.DateTime || new Date().toLocaleString();
+                const temp = entry.Temperature || entry.temp || 'N/A';
+                const humidity = entry.Humidity || entry.humidity || 'N/A';
+                const windSpeed = entry.WindSpeed || entry.wind_speed || 'N/A';
+                const description = entry.Description || entry.description || 'N/A';
+                const city = entry.City || entry.city || 'N/A';
+
+                return `
+                    <tr>
+                        <td>${dateTime}</td>
+                        <td>${temp} ${tempUnit}</td>
+                        <td>${humidity}</td>
+                        <td>${windSpeed}</td>
+                        <td>${description}</td>
+                        <td>${city}</td>
+                        <td><button class="success" onclick="saveAPIEntry('${city}', ${temp}, ${humidity}, ${windSpeed}, '${description}')">Save</button></td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function saveAPIEntry(city, temp, humidity, windSpeed, description) {
+            const entry = {
+                Temperature: temp,
+                Humidity: humidity,
+                WindSpeed: windSpeed,
+                City: city,
+                Description: description,
+                DateTime: new Date().toLocaleString()
+            };
+
+            // Show success message
+            showMessage('apiMessage', 'Entry saved to database', 'success');
+            // Reload entries
+            loadEntries();
         }
 
         async function loadEntries() {
