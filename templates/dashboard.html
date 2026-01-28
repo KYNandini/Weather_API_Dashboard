@@ -69,43 +69,42 @@
         }
         .main-container {
             display: flex;
+            flex-direction: column;
             flex: 1;
             overflow: hidden;
         }
         .tabs {
             display: flex;
-            flex-direction: column;
+            flex-direction: row;
             gap: 0;
             margin-bottom: 0;
-            background: #f5f5f5;
+            background: white;
             border-radius: 0;
-            overflow-y: auto;
-            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
-            width: 180px;
-            border-right: 2px solid #ddd;
+            overflow-x: auto;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            border-bottom: 2px solid #ddd;
             flex-shrink: 0;
         }
         .tab-btn {
             flex: 0;
-            padding: 15px 15px;
-            background: #f5f5f5;
+            padding: 15px 25px;
+            background: white;
             border: none;
             cursor: pointer;
-            font-size: 0.9em;
+            font-size: 0.95em;
             font-weight: 600;
             color: #666;
             transition: all 0.3s;
             white-space: nowrap;
-            border-left: 4px solid transparent;
-            text-align: left;
+            border-bottom: 3px solid transparent;
         }
         .tab-btn.active {
             background: white;
             color: #667eea;
-            border-left-color: #667eea;
+            border-bottom-color: #667eea;
         }
         .tab-btn:hover {
-            background: white;
+            background: #f5f5f5;
         }
         .tabs-content-wrapper {
             flex: 1;
@@ -324,27 +323,6 @@
         @media (max-width: 768px) {
             body {
                 padding: 0;
-            }
-            .main-container {
-                flex-direction: column;
-            }
-            .tabs {
-                flex-direction: row;
-                width: 100%;
-                border-right: none;
-                border-bottom: 2px solid #ddd;
-                overflow-x: auto;
-            }
-            .tab-btn {
-                flex: 1;
-                border-left: none;
-                border-bottom: 3px solid transparent;
-                text-align: center;
-                padding: 10px 15px;
-            }
-            .tab-btn.active {
-                border-left: none;
-                border-bottom-color: #667eea;
             }
             .header {
                 flex-direction: column;
