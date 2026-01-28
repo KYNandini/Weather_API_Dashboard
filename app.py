@@ -8,9 +8,17 @@ import base64
 from datetime import datetime
 import os
 import requests
+import logging
 from dotenv import load_dotenv
 
 load_dotenv()
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 app.config['ENV'] = 'production'  # Disable debug/auto-reload
@@ -19,6 +27,10 @@ app.config['ENV'] = 'production'  # Disable debug/auto-reload
 weather_data = []
 API_KEY = os.getenv('OPENWEATHER_API_KEY', '')
 CITY = os.getenv('OPENWEATHER_CITY', 'Bengaluru')
+
+# Verify API key on startup
+if not API_KEY or API_KEY == 'your_api_key_here':
+    logger.warning('WARNING: OPENWEATHER_API_KEY not configured in .env file')
 
 @app.route('/')
 def index():
@@ -129,14 +141,19 @@ def fetch_api_data():
         units = data.get('units', 'metric')
         
         if not api_key:
+            logger.error('API key not provided')
             return jsonify({'status': 'error', 'message': 'API key not provided'})
         
         url = f"https://api.openweathermap.org/data/2.5/forecast?q={city}&appid={api_key}&units={units}"
-        response = requests.get(url)
+        logger.info(f'Fetching weather data for {city}')
+        
+        response = requests.get(url, timeout=10)
         
         if response.status_code != 200:
             error_data = response.json()
-            return jsonify({'status': 'error', 'message': f"API Error: {error_data.get('message', 'Unknown error')}"})
+            error_msg = error_data.get('message', 'Unknown error')
+            logger.error(f'API Error: {response.status_code} - {error_msg}')
+            return jsonify({'status': 'error', 'message': f"API Error: {error_msg}"})
         
         api_data = response.json()
         forecast_list = api_data.get('list', [])
@@ -155,12 +172,20 @@ def fetch_api_data():
             }
             weather_data.append(entry)
         
+        logger.info(f'Successfully loaded {len(weather_data)} entries for {city}')
         return jsonify({
             'status': 'success',
             'message': f'Loaded {len(weather_data)} entries from API for {city}',
             'entries_count': len(weather_data)
         })
+    except requests.exceptions.Timeout:
+        logger.error('API request timeout')
+        return jsonify({'status': 'error', 'message': 'Request timeout - API server not responding'})
+    except requests.exceptions.ConnectionError:
+        logger.error('Connection error while fetching API data')
+        return jsonify({'status': 'error', 'message': 'Connection error - please check your internet'})
     except Exception as e:
+        logger.error(f'Unexpected error fetching API data: {str(e)}')
         return jsonify({'status': 'error', 'message': str(e)})
 
 @app.route('/get_config', methods=['GET'])
@@ -172,4 +197,11 @@ def get_config():
     })
 
 if __name__ == '__main__':
-    app.run(debug=False, port=5000, use_reloader=False)
+    logger.info('Starting Weather Dashboard (Development Mode)')
+    logger.info(f'City: {CITY}')
+    logger.info('Open http://localhost:5000 in your browser')
+    try:
+        app.run(debug=False, port=5000, use_reloader=False)
+    except Exception as e:
+        logger.error(f'Failed to start app: {e}')
+
