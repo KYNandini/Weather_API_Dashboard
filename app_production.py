@@ -26,9 +26,16 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Create instance folder
+import os as os_module
+instance_path = os_module.path.join(os_module.path.dirname(__file__), 'instance')
+os_module.makedirs(instance_path, exist_ok=True)
+
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///instance/weather_dashboard.db'
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-production')
+# Use absolute path for database
+db_path = os_module.path.join(instance_path, 'weather_dashboard.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path.replace(chr(92), "/")}'
+app.config['SECRET_KEY'] = os_module.getenv('SECRET_KEY', 'dev-secret-key-change-in-production')
 app.config['ENV'] = 'production'
 
 db = SQLAlchemy(app)
@@ -290,16 +297,27 @@ scheduler = BackgroundScheduler()
 
 # ==================== DATABASE INITIALIZATION ====================
 
-with app.app_context():
-    db.create_all()
-    # Create default user if it doesn't exist
-    if not User.query.get(DEFAULT_USER_ID):
-        default_user = User(id=DEFAULT_USER_ID, username='Guest', email='guest@example.com')
-        db.session.add(default_user)
-        db.session.commit()
-        logger.info(f'Created default user with ID {DEFAULT_USER_ID}')
+def init_db():
+    """Initialize database safely"""
+    import os
+    try:
+        # Create instance folder if it doesn't exist
+        instance_path = os.path.join(os.path.dirname(__file__), 'instance')
+        os.makedirs(instance_path, exist_ok=True)
+        
+        with app.app_context():
+            db.create_all()
+            # Create default user if it doesn't exist
+            if not User.query.get(DEFAULT_USER_ID):
+                default_user = User(id=DEFAULT_USER_ID, username='Guest', email='guest@example.com')
+                db.session.add(default_user)
+                db.session.commit()
+                logger.info(f'Created default user with ID {DEFAULT_USER_ID}')
+    except Exception as e:
+        logger.error(f'Database initialization error: {e}')
 
 if __name__ == '__main__':
+    init_db()
     logger.info('Starting Weather Dashboard (No Authentication Mode)')
     logger.info('Open http://localhost:5000 in your browser')
     try:
